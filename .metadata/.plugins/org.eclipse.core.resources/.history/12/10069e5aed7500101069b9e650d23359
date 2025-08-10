@@ -1,0 +1,37 @@
+package com.example.recipes.service;
+
+import com.example.recipes.model.RecipeEntity;
+import com.example.recipes.model.RecipeApiResponse;
+import com.example.recipes.repository.RecipeRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class RecipeLoaderService {
+
+    private final RecipeRepository recipeRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public int loadRecipes(String url) {
+        log.info("Fetching recipes from API: {}", url);
+
+        RecipeApiResponse response = restTemplate.getForObject(url, RecipeApiResponse.class);
+
+        if (response == null || response.getRecipes() == null) {
+            log.warn("No recipes received from API.");
+            return 0;
+        }
+
+        List<RecipeEntity> entities = response.getRecipes();
+        recipeRepository.saveAll(entities);
+
+        log.info("Loaded {} recipes into the database.", entities.size());
+        return entities.size();
+    }
+}

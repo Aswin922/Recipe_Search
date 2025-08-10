@@ -1,0 +1,11 @@
+com\example\recipes\mapper\RecipeMapper.class
+com\example\recipes\model\RecipeApiResponse.class
+com\example\recipes\model\RecipeEntity$RecipeEntityBuilder.class
+com\example\recipes\controller\RecipeController.class
+com\example\recipes\dto\RecipeDto$RecipeDtoBuilder.class
+com\example\recipes\repository\RecipeRepository.class
+com\example\recipes\dto\RecipeDto.class
+com\example\recipes\service\RecipeService.class
+com\example\recipes\service\RecipeLoaderService.class
+com\example\recipes\model\RecipeEntity.class
+com\example\recipes\RecipesApplication.class

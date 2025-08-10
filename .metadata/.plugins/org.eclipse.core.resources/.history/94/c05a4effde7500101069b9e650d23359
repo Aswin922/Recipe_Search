@@ -1,0 +1,54 @@
+package com.example.recipes.service;
+
+import com.example.recipes.dto.RecipeDto;
+import com.example.recipes.mapper.RecipeMapper;
+import com.example.recipes.model.RecipeEntity;
+import com.example.recipes.repository.RecipeRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RecipeLoaderService {
+    private final RecipeRepository repository;
+    private final Logger log = LoggerFactory.getLogger(RecipeLoaderService.class);
+    private final RestTemplate rt = new RestTemplate();
+
+    public int loadFromRemote(String url) {
+        log.info("Loading recipes from {}", url);
+        ResponseEntity<Map> resp = rt.getForEntity(url, Map.class);
+        if (!resp.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Failed to fetch remote recipes: " + resp.getStatusCode());
+        }
+        Map body = resp.getBody();
+        if (body == null || !body.containsKey("recipes")) return 0;
+        Object recs = body.get("recipes");
+        if (!(recs instanceof java.util.List)) return 0;
+        java.util.List list = (java.util.List) recs;
+        List entities = list.stream().map(o -> {
+            Map m = (Map)o;
+            RecipeDto dto = RecipeDto.builder()
+                    .id(((Number)m.get("id")).longValue())
+                    .name((String)m.get("name"))
+                    .cuisine((String)m.get("cuisine"))
+                    .instructions((String)m.get("instructions"))
+                    .cookTimeMinutes(m.get("cookTimeMinutes") instanceof Number ? ((Number)m.get("cookTimeMinutes")).intValue() : null)
+                    .tags(m.get("tags") instanceof java.util.List ? new HashSet<>((java.util.Collection)m.get("tags")) : new HashSet<>())
+                    .build();
+            return RecipeMapper.toEntity(dto);
+        }).collect(Collectors.toList());
+        repository.saveAll(entities);
+        log.info("Saved {} recipes", entities.size());
+        return entities.size();
+    }
+}

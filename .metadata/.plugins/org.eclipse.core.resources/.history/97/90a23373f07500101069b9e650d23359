@@ -1,0 +1,22 @@
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.example.recipes.service.RecipeService;
+
+@SpringBootTest
+class RecipeServiceTest {
+
+    @Autowired
+    private RecipeService recipeService;
+
+    @Test
+    void testLoadRecipesFromExternal() {
+        int count = recipeService.loadRecipesFromExternal();
+        assertTrue(count > 0);
+    }
+
+    @Test
+    void testFindById_NotFound() {
+        assertThrows(ResourceNotFoundException.class, () -> recipeService.findById(999L));
+    }
+}

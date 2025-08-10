@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; padding: 16px; }
+.searchbar { margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; background: #fff; }

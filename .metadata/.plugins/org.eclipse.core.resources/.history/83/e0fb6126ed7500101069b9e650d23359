@@ -1,0 +1,53 @@
+package com.example.recipes.service;
+
+import com.example.recipes.dto.RecipeDto;
+import com.example.recipes.mapper.RecipeMapper;
+import com.example.recipes.model.RecipeApiResponse;
+import com.example.recipes.model.RecipeEntity;
+import com.example.recipes.repository.RecipeRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RecipeService implements RecipeServiceI {
+    private final RecipeRepository repository;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final Logger log = LoggerFactory.getLogger(RecipeService.class);
+
+    public List<RecipeDto> searchByText(String q) {
+        if (q == null || q.isBlank()) return repository.findAll()
+                .stream().map(RecipeMapper::toDto).collect(Collectors.toList());
+        List<RecipeEntity> found = repository.findByNameContainingIgnoreCaseOrCuisineContainingIgnoreCase(q, q);
+        return found.stream().map(RecipeMapper::toDto).collect(Collectors.toList());
+    }
+
+    public Optional<RecipeDto> findById(Long id) {
+        return repository.findById(id).map(RecipeMapper::toDto);
+    }
+
+    public int loadRecipes(String url) {
+        log.info("Fetching recipes from API: {}", url);
+
+        RecipeApiResponse response = restTemplate.getForObject(url, RecipeApiResponse.class);
+
+        if (response == null || response.getRecipes() == null) {
+            log.warn("No recipes received from API.");
+            return 0;
+        }
+
+        List<RecipeEntity> entities = response.getRecipes();
+        repository.saveAll(entities);
+
+        log.info("Loaded {} recipes into the database.", entities.size());
+        return entities.size();
+    }
+}

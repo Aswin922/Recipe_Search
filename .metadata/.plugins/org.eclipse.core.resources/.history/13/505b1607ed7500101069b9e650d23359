@@ -1,0 +1,13 @@
+package com.example.recipes.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import com.example.recipes.dto.RecipeDto;
+
+public interface RecipeServiceI {
+    List<RecipeDto> searchRecipes(String query);
+    Optional<RecipeDto> findById(Long id);
+    int loadRecipes();
+}
+
